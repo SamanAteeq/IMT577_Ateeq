@@ -1,7 +1,7 @@
 Use Database IMT577_DW_SAMAN_ATEEQ;
 
 --Creating and Inserting Fact_SalesActual
-Drop Table Fact_SalesActual
+
 CREATE OR REPLACE TABLE Fact_SalesActual(
      DimProductID INTEGER CONSTRAINT FK_FactSalesActual_ProductID FOREIGN KEY REFERENCES Dim_Product(DimProductID) Not Null
     ,DimStoreID INTEGER CONSTRAINT FK_FactSalesActual_StoreID FOREIGN KEY REFERENCES Dim_Store(DimStoreID) Not Null
@@ -83,24 +83,24 @@ Insert into Fact_SRCSalesTarget
 	,SalesTargetAmount 
 )
 Select 
-NVL(ds.DimStoreID,-1),
-NVL(dr.DimResellerID,-1),
-NVL(dch.DimChannelID,-1),
-dd.DATE_PKEY,
-stcs.TargetSalesAmount As "SalesTargetAmount"
+     NVL(ds.DimStoreID,-1),
+     NVL(dr.DimResellerID,-1),
+     NVL(dch.DimChannelID,-1),
+     dd.DATE_PKEY,
+     stcs.TargetSalesAmount As "SalesTargetAmount"
 From
-STAGE_TARGETDATA_CHANNELRESELLER_STORE stcs 
-left join Dim_Channel dch  on dch.ChannelName = (case when stcs.ChannelName= 'Online' then 'On-line' else stcs.ChannelName End) 
-left join Dim_Store ds on ds.StoreNumber = (case 
-when stcs.TargetName= 'Store Number 5' then 5 
-when stcs.TargetName= 'Store Number 8' then 8
-when stcs.TargetName= 'Store Number 10' then 10
-when stcs.TargetName= 'Store Number 21' then 21
-when stcs.TargetName= 'Store Number 34' then 34
-else 39 end)
-left join Dim_Reseller dr on dr.ResellerName= (case when stcs.TargetName= 'Mississippi Distributors' then 'Mississipi Distributors'
-else stcs.TargetName end)
-left join Dim_Date dd on stcs.Year=dd.Year 
+     STAGE_TARGETDATA_CHANNELRESELLER_STORE stcs 
+     left join Dim_Channel dch  on dch.ChannelName = (case when stcs.ChannelName= 'Online' then 'On-line' else stcs.ChannelName End) 
+     left join Dim_Store ds on ds.StoreNumber = (case 
+     when stcs.TargetName= 'Store Number 5' then 5 
+     when stcs.TargetName= 'Store Number 8' then 8
+     when stcs.TargetName= 'Store Number 10' then 10
+     when stcs.TargetName= 'Store Number 21' then 21
+     when stcs.TargetName= 'Store Number 34' then 34
+     else 39 end)
+     left join Dim_Reseller dr on dr.ResellerName= (case when stcs.TargetName= 'Mississippi Distributors' then 'Mississipi Distributors'
+     else stcs.TargetName end)
+     left join Dim_Date dd on stcs.Year=dd.Year 
  
 Select * from Fact_SRCSalesTarget
 
