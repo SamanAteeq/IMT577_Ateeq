@@ -5,59 +5,57 @@ Use Database IMT577_DW_SAMAN_ATEEQ;
 
 /*How are they performing compared to target? Will they meet their 2014 target?*/
 Create or Replace Secure View vw_SalesvsTarget_YearandStore as 
-(select ds.StoreNumber, dd.YEAR, fsst.SalesTargetAmount as Target, sum(fsa.SalesAmount) as TotalSales
+(select ds.StoreNumber, dd.Date, dd.YEAR,dd.MONTH_ABBREV,
+ fsst.SalesTargetAmount as Target, sum(fsa.SalesAmount) as TotalSales
 from Fact_SalesActual fsa 
 join Dim_Date dd on fsa.DimSaleDateID = dd.DATE_PKEY
 join Dim_Store ds on fsa.DimStoreID = ds.DimStoreID
 join Fact_SrcSalesTarget fsst on fsst.DimStoreID = ds.DimStoreID and fsst.DimTargetDateID = dd.DATE_PKEY
-where ds.StoreNumber in (10,21) group by ds.StoreNumber, dd.Year, Target)
+where ds.StoreNumber in (10,21) group by ds.StoreNumber,dd.Date,  dd.Year, dd.MONTH_ABBREV, Target)
 
 
 /*Should either store be closed? Why or why not?*/
 Create or replace secure View vw_Profit_YearandStore as
-select ds.StoreNumber, dd.YEAR, sum(fsa.SalesTotalProfit) as TotalProfit
+select ds.StoreNumber, dd.Date, dd.YEAR,dd.MONTH_ABBREV, sum(fsa.SalesTotalProfit) as TotalProfit
 from Fact_SalesActual fsa 
 join Dim_Date dd on fsa.DimSaleDateID = dd.DATE_PKEY
 join Dim_Store ds on fsa.DimStoreID = ds.DimStoreID
-where ds.StoreNumber in (10,21) group by ds.StoreNumber, dd.Year
+where ds.StoreNumber in (10,21) group by ds.StoreNumber, dd.Date, dd.Year, dd.MONTH_ABBREV
 
 /*2. Recommend 2013 bonus amounts for each store if the total bonus pool is $2,000,000 
 using a comparison of 2013 actual sales vs. 2013 sales targets as the basis for the recommendation..*/
 
 Create or replace secure View vw_BonusAmount as
-with basedata as 
-(select ds.StoreNumber, dd.YEAR, fsst.SalesTargetAmount as Target, sum(fsa.SalesAmount) as TotalSales, (TotalSales/Target)*100 as Ratio
-from Fact_SalesActual fsa 
+with basedata as
+(select ds.StoreNumber, dd.YEAR, dd.MONTH_ABBREV, dd.DATE, fsst.SalesTargetAmount as Target, sum(fsa.SalesAmount) as TotalSales, (TotalSales/Target)*100 as Ratio
+from Fact_SalesActual fsa
 join Dim_Date dd on fsa.DimSaleDateID = dd.DATE_PKEY
 join Dim_Store ds on fsa.DimStoreID = ds.DimStoreID
 join Fact_SrcSalesTarget fsst on fsst.DimStoreID = ds.DimStoreID and fsst.DimTargetDateID = dd.DATE_PKEY
-where ds.StoreNumber in (10,21) and dd.Year= 2013 group by ds.StoreNumber, dd.Year, Target)
-select StoreNumber ,Year, Target, TotalSales, bd.Ratio, ((bd.Ratio/(select sum(ratio) from basedata)) *2000000) as BonusAmount from basedata bd
-
-
+where ds.StoreNumber <> -1 and dd.YEAR= 2013 group by ds.StoreNumber, dd.YEAR, dd.DATE, dd.MONTH_ABBREV,Target)
+select bd.StoreNumber , bd.YEAR, MONTH_ABBREV, Target, TotalSales, bd.Ratio, ((bd.Ratio/(select sum(ratio) from basedata)) *2000000) as BonusAmount from basedata bd
 /* 3. Assess product sales by day of the week at stores 10 and 21. What can we learn about sales trends?*/
 
 Create or replace secure View vw_ProductSales_DayOfWeek as
-select dd.DAY_ABBREV, dp.ProductCategory, dp.ProductType, dp.ProductName,ds.StoreNumber,
+select dd.Year, dd.DAY_ABBREV, dp.ProductCategory, dp.ProductType, dp.ProductName,ds.StoreNumber,
 sum(fsa.SalesTotalProfit) as TotalProfit, sum(fsa.SalesAmount) as TotalSales, sum(fsa.SalesQuantity) as TotalQuantity
 from Fact_SalesActual fsa 
 join Dim_Date dd on fsa.DimSaleDateID = dd.DATE_PKEY
 join Dim_Product dp on fsa.DimProductID = dp.DimProductID
 join Dim_Store ds on fsa.DimStoreID = ds.DimStoreID
 where ds.StoreNumber in (10,21)
-group by dd.DAY_ABBREV, dp.ProductCategory, dp.ProductType, dp.ProductName, ds.StoreNumber
+group by dd.Year, dd.DAY_ABBREV, dp.ProductCategory, dp.ProductType, dp.ProductName, ds.StoreNumber
 
 /* 4. Should any new stores be opened? Include all stores in your analysis if necessary. If so, where? Why or why not?*/
 
 Create or replace secure View vw_SalesandProfit_Store as
-select ds.StoreNumber, dd.Year, dl.Region, sum(fsa.SalesAmount) as TotalSales, sum(fsa.SalesTotalProfit) as TotalProfit
+select ds.StoreNumber, dd.Year, dd.MONTH_ABBREV, dl.Region, sum(fsa.SalesAmount) as TotalSales, sum(fsa.SalesTotalProfit) as TotalProfit
 from Fact_SalesActual fsa 
 join Dim_Date dd on fsa.DimSaleDateID = dd.DATE_PKEY
 join Dim_Store ds on fsa.DimStoreID = ds.DimStoreID
 join Dim_Location dl on dl.DimLocationID = fsa.DimLocationID
 where ds.StoreNumber <> -1
-group by ds.StoreNumber, dd.Year, dl.Region 
-
+group by ds.StoreNumber, dd.Year,dd.MONTH_ABBREV, dl.Region 
 --SQL "pass-through" views
 
 Create or replace secure View vw_Dim_Channel AS
