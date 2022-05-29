@@ -32,7 +32,7 @@ join Dim_Date dd on fsa.DimSaleDateID = dd.DATE_PKEY
 join Dim_Store ds on fsa.DimStoreID = ds.DimStoreID
 join Fact_SrcSalesTarget fsst on fsst.DimStoreID = ds.DimStoreID and fsst.DimTargetDateID = dd.DATE_PKEY
 where ds.StoreNumber in (10,21) and dd.Year= 2013 group by ds.StoreNumber, dd.Year, Target)
-select StoreNumber ,Year, Target, TotalSales, ((bd.Ratio/(select sum(ratio) from basedata)) *2000000) as BonusAmount from basedata bd
+select StoreNumber ,Year, Target, TotalSales, bd.Ratio, ((bd.Ratio/(select sum(ratio) from basedata)) *2000000) as BonusAmount from basedata bd
 
 
 /* 3. Assess product sales by day of the week at stores 10 and 21. What can we learn about sales trends?*/
