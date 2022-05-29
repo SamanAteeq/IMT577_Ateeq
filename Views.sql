@@ -1,7 +1,7 @@
 Use Database IMT577_DW_SAMAN_ATEEQ;
 
 
-/*1. Give an overall assessment of stores number 5 and 8’s sales.*/
+/*1. Give an overall assessment of stores number 10 and 21’s sales.*/
 
 /*How are they performing compared to target? Will they meet their 2014 target?*/
 Create or Replace Secure View vw_SalesvsTarget_YearandStore as 
